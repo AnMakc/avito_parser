@@ -21,9 +21,13 @@ def print_ad_info(ad, number):
     print('Дата:', ad['Date'])
 
 
+def get_query_list_from_file(filename):
+    with open(filename, 'r') as qfile:
+        return list(map(str.strip, qfile.readlines()))
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('query', type=str, help='Поисковый запрос')
     parser.add_argument('-u', '--output', type=str, default='output.csv',
                         help='Название cvs файла для вывода (например output.csv)')
     parser.add_argument('-s', '--sortby', type=str, choices=['date', 'price', 'price_desc'],
@@ -50,6 +54,10 @@ def parse_args():
                                 Формат – 2019-01-10 или 2019-01-10 15:29''')
     parser.add_argument('-a', '--statistics', default=False, action='store_true',
                         help='Выводить топ 5 объявлений и общее количество')
+    query_group = parser.add_mutually_exclusive_group(required=True)
+    query_group.add_argument('query', type=str, nargs='?', help='Поисковый запрос')
+    query_group.add_argument('-q', '--qfile', type=str,
+                             help='Название файла с поисковыми запросами')
     return parser.parse_args()
 
 
@@ -62,22 +70,27 @@ if __name__ == '__main__':
         print(os.path.abspath(args.output))
         writer = DictWriter(out_file, delimiter=',', fieldnames=fieldnames)
         writer.writeheader()
-        for ad in get_all_ads(args.query, sort_by=args.sortby, by_title=args.bytitle,
-                            with_images=args.withimages, owner=args.owner):
-            if (args.minprice and not ad['Price']) or (args.minprice and \
-                ad['Price'] and ad['Price'] < args.minprice):
-                continue
-            if (args.maxprice and not ad['Price']) or (args.maxprice and \
-                ad['Price'] and ad['Price'] > args.maxprice):
-                continue
-            if args.startdate and to_date(ad['Date']) < args.startdate:
-                continue
-            if args.enddate and to_date(ad['Date']) > args.enddate:
-                continue
-            ad_num += 1
-            if args.statistics and ad_num <= num_of_printed_ads:
-                print_ad_info(ad, ad_num)
-            writer.writerow(ad)
+        if args.query:
+            query_list = [args.query]
+        else:
+            query_list = get_query_list_from_file(args.qfile)
+        for query in query_list:
+            for ad in get_all_ads(query, sort_by=args.sortby, by_title=args.bytitle,
+                                  with_images=args.withimages, owner=args.owner):
+                if (args.minprice and not ad['Price']) or (args.minprice and \
+                    ad['Price'] and ad['Price'] < args.minprice):
+                    continue
+                if (args.maxprice and not ad['Price']) or (args.maxprice and \
+                    ad['Price'] and ad['Price'] > args.maxprice):
+                    continue
+                if args.startdate and to_date(ad['Date']) < args.startdate:
+                    continue
+                if args.enddate and to_date(ad['Date']) > args.enddate:
+                    continue
+                ad_num += 1
+                if args.statistics and ad_num <= num_of_printed_ads:
+                    print_ad_info(ad, ad_num)
+                writer.writerow(ad)
     if ad_num == 0:
         print('Ни одно объявление не найдено')
     elif args.statistics:
