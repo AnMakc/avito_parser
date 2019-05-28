@@ -3,6 +3,7 @@ from datetime import datetime
 from csv import DictWriter
 from avito_parser import get_all_ads
 import os
+import time
 
 
 def to_date(string):
@@ -54,8 +55,9 @@ def parse_args():
                                 Формат – 2019-01-10 или 2019-01-10 15:29''')
     parser.add_argument('-a', '--statistics', default=False, action='store_true',
                         help='Выводить топ 5 объявлений и общее количество')
-    parser.add_argument('-p', '--pause', type=float, default=None,
-                        help='Задержка между запросами в секундах для защиты от бана')
+    parser.add_argument('-p', '--pause', type=float, default=2.0,
+                        help='Задержка между запросами в секундах для защиты от бана, '
+                             'по-умолчанию 2 секунды')
     query_group = parser.add_mutually_exclusive_group(required=True)
     query_group.add_argument('query', type=str, nargs='?', help='Поисковый запрос')
     query_group.add_argument('-q', '--qfile', type=str,
@@ -78,6 +80,8 @@ if __name__ == '__main__':
         else:
             query_list = get_query_list_from_file(args.qfile)
         for query in query_list:
+            if args.pause is not None:
+                time.sleep(args.pause)
             print('Поиск по запросу "{}" ...'.format(query))
             for ad in get_all_ads(query, sort_by=args.sortby, by_title=args.bytitle,
                                   with_images=args.withimages, owner=args.owner,
