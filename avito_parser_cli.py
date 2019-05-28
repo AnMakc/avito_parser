@@ -54,10 +54,13 @@ def parse_args():
                                 Формат – 2019-01-10 или 2019-01-10 15:29''')
     parser.add_argument('-a', '--statistics', default=False, action='store_true',
                         help='Выводить топ 5 объявлений и общее количество')
+    parser.add_argument('-p', '--pause', type=float, default=None,
+                        help='Задержка между запросами в секундах для защиты от бана')
     query_group = parser.add_mutually_exclusive_group(required=True)
     query_group.add_argument('query', type=str, nargs='?', help='Поисковый запрос')
     query_group.add_argument('-q', '--qfile', type=str,
-                             help='Название файла с поисковыми запросами')
+                             help='Название файла с поисковыми запросами, '
+                                  'по одному запросу на строку')
     return parser.parse_args()
 
 
@@ -75,8 +78,10 @@ if __name__ == '__main__':
         else:
             query_list = get_query_list_from_file(args.qfile)
         for query in query_list:
+            print('Поиск по запросу "{}" ...'.format(query))
             for ad in get_all_ads(query, sort_by=args.sortby, by_title=args.bytitle,
-                                  with_images=args.withimages, owner=args.owner):
+                                  with_images=args.withimages, owner=args.owner,
+                                  pause=args.pause):
                 if (args.minprice and not ad['Price']) or (args.minprice and \
                     ad['Price'] and ad['Price'] < args.minprice):
                     continue

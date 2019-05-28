@@ -2,6 +2,7 @@ from urllib.parse import quote
 from datetime import datetime
 import locale
 import requests
+import time
 from bs4 import BeautifulSoup
 
 
@@ -13,7 +14,7 @@ class TooManyRequests(Exception):
     pass
 
 
-def get_all_ads(query, sort_by=None, by_title=False, with_images=False, owner=None):
+def get_all_ads(query, sort_by=None, by_title=False, with_images=False, owner=None, pause=None):
     '''Yields dicts with ad info (title, link, price and date).
 
     Keyword arguments:
@@ -26,9 +27,11 @@ def get_all_ads(query, sort_by=None, by_title=False, with_images=False, owner=No
                    default False
     owner -- if 'private' yields only private ads, if 'company' only company
              default None (yields all ads)
+    pause -- optional pause between request to avoid instant ban (in seconds)
+             default None (no pause)
     '''
     search_url = generate_search_url(query, sort_by, by_title, with_images, owner)
-    for page in get_pages(search_url):
+    for page in get_pages(search_url, pause):
         for ad in get_ads_from_page(page):
             yield agregate_ad_info(ad)
 
@@ -128,13 +131,17 @@ def get_current_year():
     return datetime.today().year
 
 
-def get_pages(search_url):
-    '''Yields page html as string until it reaches page with nothing found error'''
+def get_pages(search_url, pause=None):
+    '''Yields page html as string until it reaches page with nothing found error.
+    Optional pause between requests can be set to avoid instant ban
+    '''
     page_number = 1
     page = fetch_page(search_url.format(page_number))
     while is_page_exists(page):
         yield page
         page_number += 1
+        if pause is not None:
+            time.sleep(pause)
         page = fetch_page(search_url.format(page_number))
 
 
@@ -147,10 +154,10 @@ def fetch_page(page_url):
 
     raises TooManyRequest if request redirected to https://www.avito.ru/blocked
     '''
-    responce = requests.get(page_url)
-    if responce.url == 'https://www.avito.ru/blocked':
+    response = requests.get(page_url)
+    if response.url == 'https://www.avito.ru/blocked':
         raise TooManyRequests('IP temporarily blocked')
-    return requests.get(page_url).text
+    return response.text
 
 
 def get_beautiful_soup(html):

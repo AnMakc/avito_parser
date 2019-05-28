@@ -33,7 +33,7 @@
     usage: avito_parser_cli.py [-h] [-u OUTPUT] [-s {date,price,price_desc}] [-t]
                                [-f] [-w {private,company}] [-m MINPRICE]
                                [-M MAXPRICE] [-d STARTDATE] [-e ENDDATE] [-a]
-                               [-q QFILE]
+                               [-p PAUSE] [-q QFILE]
                                [query]
     
     positional arguments:
@@ -62,9 +62,11 @@
                             Только объявления созданные до этой даты; Формат –
                             2019-01-10 или 2019-01-10 15:29
       -a, --statistics      Выводить топ 5 объявлений и общее количество
+      -p PAUSE, --pause PAUSE
+                            Задержка между запросами в секундах для защиты от бана
       -q QFILE, --qfile QFILE
                             Название файла с поисковыми запросами,
-                            по одному запросу на строку.
+                            по одному запросу на строку
 
 Все объявления с "трактор мтз" в названии, с минимальной ценой 300000₽, отсортированные по дате:
 
