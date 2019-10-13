@@ -65,17 +65,20 @@ def agregate_ad_info(ad):
 
 
 def get_title(ad):
-    return ad.find('a', attrs={'class': 'item-description-title-link'})['title']
+    return ad.find('span', attrs={'itemprop': 'name'}).contents[0].strip()
 
 
 def get_link(ad):
     base_url = 'https://www.avito.ru'
-    return base_url + ad.find('a', attrs={'class': 'item-description-title-link'})['href']
+    return base_url + ad.find('a', attrs={'itemprop': 'url'})['href']
 
 
 def get_price(ad):
-    price = int(ad.find('span', attrs={'class': 'price'})['content'])
-    return price if price else None
+    price_str = ad.find('span', attrs={'itemprop': 'price'}).contents[0].replace(' ', '').strip()
+    try:
+        return int(price_str)
+    except ValueError:
+        return None
 
 
 def get_date(ad):
