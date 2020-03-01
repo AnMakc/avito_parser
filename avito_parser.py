@@ -1,6 +1,6 @@
 from urllib.parse import quote
 from datetime import datetime
-import locale
+import re
 import requests
 import time
 from bs4 import BeautifulSoup
@@ -65,7 +65,7 @@ def agregate_ad_info(ad):
 
 
 def get_title(ad):
-    return ad.find('span', attrs={'itemprop': 'name'}).contents[0].strip()
+    return ad.find('a', attrs={'itemprop': 'url'}).contents[0].strip()
 
 
 def get_link(ad):
@@ -74,7 +74,7 @@ def get_link(ad):
 
 
 def get_price(ad):
-    price_str = ad.find('span', attrs={'itemprop': 'price'}).contents[0].replace(' ', '').strip()
+    price_str = ad.find('span', attrs={'class': 'snippet-price'}).contents[0].replace(' ', '').strip()
     try:
         return int(price_str)
     except ValueError:
@@ -82,7 +82,7 @@ def get_price(ad):
 
 
 def get_date(ad):
-    date = ad.find('div', attrs={'class': 'js-item-date'})['data-absolute-date']
+    date = ad.find('div', attrs={'class': 'snippet-date-info'}).contents[0]
     return date.strip().replace('\xa0', ' ')
 
 
@@ -168,4 +168,4 @@ def get_beautiful_soup(html):
 
 
 def is_page_exists(page):
-    return get_beautiful_soup(page).find('div', attrs={'class': 'nulus'}) is None
+    return get_beautiful_soup(page).find('div', text=re.compile("Ничего не нашлось по запросу.*")) is None
