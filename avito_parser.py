@@ -158,7 +158,12 @@ def get_pages(search_url, pause=None):
 
 
 def get_ads_from_page(page):
-    return get_beautiful_soup(page).find_all('div', attrs={'class': 'item_table-wrapper'})
+    bs_page = get_beautiful_soup(page)
+    remote_ads = bs_page.find('div', attrs={'class': 'extra-block__header'})
+    if remote_ads is not None:
+        return remote_ads.find_all_previous('div', attrs={'class': 'item_table-wrapper'})
+    else:
+        return bs_page.find_all('div', attrs={'class': 'item_table-wrapper'})
 
 
 def fetch_page(page_url):
