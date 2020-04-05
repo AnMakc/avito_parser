@@ -86,7 +86,12 @@ def get_price(ad):
 
 
 def get_date(ad):
-    date = ad.find('div', attrs={'class': 'snippet-date-info'}).attrs['data-tooltip']
+    date_node = ad.find('div', attrs={'class': 'snippet-date-info'})
+    if date_node.attrs['data-tooltip'].strip():
+        date = date_node.attrs['data-tooltip']
+    else:
+        date = date_node.contents[0]
+
     return date.strip().replace('\xa0', ' ')
 
 
