@@ -77,7 +77,8 @@ def get_link(ad):
 
 
 def get_price(ad):
-    price_str = ad.find('span', attrs={'class': 'snippet-price'}).contents[0].replace(' ', '').strip()
+    price_str = ad.find('span', attrs={'class': 'snippet-price'}).contents[0]
+    price_str = re.sub('[^\d]', '', price_str)
     try:
         return int(price_str)
     except ValueError:
