@@ -32,7 +32,10 @@ def get_all_ads(query, sort_by=None, by_title=False, with_images=False, owner=No
     '''
     search_url = generate_search_url(query, sort_by, by_title, with_images, owner)
     for page in get_pages(search_url, pause):
-        for ad in get_ads_from_page(page):
+        ads = get_ads_from_page(page)
+        if not ads:
+            break
+        for ad in ads:
             yield agregate_ad_info(ad)
 
 
@@ -82,7 +85,7 @@ def get_price(ad):
 
 
 def get_date(ad):
-    date = ad.find('div', attrs={'class': 'snippet-date-info'}).contents[0]
+    date = ad.find('div', attrs={'class': 'snippet-date-info'}).attrs['data-tooltip']
     return date.strip().replace('\xa0', ' ')
 
 
